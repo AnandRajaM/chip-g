@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import os.path
 
 from google.auth.transport.requests import Request
@@ -6,9 +6,13 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from datetime import datetime, timedelta
+import pytz
+
+
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 
@@ -104,8 +108,6 @@ def get_upcoming_events(service, max_results=10):
 
 
 
-
-
 def getCalendarList( service ):
   calendarList = service.calendarList()
   print( calendarList )
@@ -114,6 +116,36 @@ def getCalendarList( service ):
   print("done?")
 
   
+
+
+def createEvent(service):  
+    local_tz = pytz.timezone('Asia/Kolkata')  
+    local_time = datetime.now(local_tz)
+    
+    print("Local time:", local_time.strftime("%Y-%m-%d %H:%M:%S %Z"))
+    
+    start_time = local_time + timedelta(minutes=2)
+    end_time = start_time + timedelta(minutes=2)
+    
+    event = {
+        'summary': 'Test Event',
+        'location': 'Online',
+        'description': 'Yo it workz?? sick! :)',
+        'start': {
+            'dateTime': start_time.isoformat(),  
+            'timeZone': str(local_tz),
+        },
+        'end': {
+            'dateTime': end_time.isoformat(),  
+            'timeZone': str(local_tz),
+        },
+        'reminders': {
+            'useDefault': True,
+        },
+    }
+    
+    event = service.events().insert(calendarId='primary', body=event).execute()
+    print('Event created: %s' % (event.get('htmlLink')))
 
 
 
@@ -127,4 +159,5 @@ if __name__ == "__main__":
     #     start = event["start"].get("dateTime", event["start"].get("date"))
     #     print(start, event["summary"])
 
-    getCalendarList( service )
+    # getCalendarList( service )
+    createEvent( service )
